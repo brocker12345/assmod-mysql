@@ -1,13 +1,13 @@
 "AddonInfo"
 {
-	"name"		"Pulsar Effect"
+	"name"		"MySQL ASSMod"
 	"version"	"1.0"
 	"up_date"	"2nd July 2008"
-	"author_name"	"HuntsKikBut"
+	"author_name"	"Huntskikbut"
 	"author_email"	"admin@pulsareffect.com"
 	"author_url"	"http://www.pulsareffect.com/"
 	
-	"info"		"A modified version of ASS to work with PE."
+	"info"		"A modified version of ASSMod to work with MySQL."
 	
 	"GCFRequires"
 	{
