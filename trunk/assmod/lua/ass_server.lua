@@ -1,6 +1,8 @@
 AddCSLuaFile("autorun/ass.lua")
 AddCSLuaFile("ass_shared.lua")
 AddCSLuaFile("ass_client.lua")
+AddCSLuaFile("pe_chat.lua")
+AddCSLuaFile("pe_vote_cl.lua");
 AddCSLuaFile("cl_nwvars.lua");
 
 include("ass_shared.lua")
@@ -25,6 +27,99 @@ concommand.Add('disguise', AdminDisg);
 
 function AddChatCommand ( Name, Func ) PE_COMMANDS[Name] = Func; end
 function RemoveChatCommand ( Name ) PE_COMMANDS[Name] = nil; end
+
+function PE_ChatCommands ( Player, Text, Bool )
+	local ExplodedString = string.Explode(" ", string.lower(Text));
+	
+	if string.find(Text, "!") == 1 or string.find(Text, "/") == 1 then
+		local Command = nil;
+		local CommandN = '';
+		
+		for k, v in pairs(PE_COMMANDS) do
+			local K = string.gsub(k, '!!EMPTY!!', '');
+			local Sub = string.sub(Text, 1, string.len(k) + 1);
+			
+			if Sub == '!' .. K or Sub == '/' .. K then			
+				Command = v;
+				
+				if string.find(Text, '!' .. K .. ' ') or string.find(Text, '/' .. K .. ' ') then
+					CommandN = string.gsub(string.gsub(Text, '!' .. K .. ' ', ''), '/' .. K .. ' ', '');
+				else
+					CommandN = string.gsub(string.gsub(Text, '!' .. K, ''), '/' .. K, '');
+				end
+				break;
+			end
+		end
+		
+		if Command then
+			PCallError(Command, Player, Text, Bool, CommandN);
+		else
+			Player:PrintMessage(HUD_PRINTTALK, "No such command.");
+		end
+		
+		return "";
+	else
+		if Bool then			
+			if PE_CHAT_OVERRIDE then
+				return PE_CHAT_OVERRIDE(Player, Text);
+			else
+				umsg.Start('PE_LOCALCHAT');
+					umsg.Entity(Player);
+					umsg.String(Text);
+				umsg.End();
+				
+				Msg(Player:Nick() .. ": " .. Text .. "\n");
+				return "";
+			end
+		else
+			local ServerID = ChatName or "Dev";
+			MySQLQuery(SiteDatabaseConnection, "INSERT INTO `global_chat` (`server_id`, `user_name`, `message`) VALUES ('" .. StripForHTTP(ServerID) .. "', '" .. StripForHTTP(Player:Name()) .. "', '" .. StripForHTTP(Text) .. "')");
+		
+			umsg.Start('PE_GLOBALCHAT');
+				umsg.Entity(Player);
+				umsg.String(Text);
+			umsg.End();
+			
+			Msg(Player:Nick() .. ": " .. Text .. "\n");
+			return "";
+		end
+	end
+end
+hook.Add("PlayerSay", "PE_ChatCommands", PE_ChatCommands);
+
+//function PE_ServerBroadcast ( Player, Text, LessCommand )
+	//if Player:GetLevel() > 2 then return false; end
+	//MySQLQuery(SiteDatabaseConnection, "INSERT INTO `global_chat` (`server_id`, `user_name`, `message`) VALUES ('SVRBRD', 'SVRBRD', '" .. StripForHTTP(string.gsub(LessCommand) .. "')");
+//end
+//AddChatCommand('broadcast', PE_ServerBroadcast);
+
+function PE_BeginGlobalChat ( )
+	CurRecNum = 0;
+	
+	local Stuff = MySQLQuery(SiteDatabaseConnection, "SELECT `num` FROM `global_chat` ORDER BY `num` DESC LIMIT 1");
+	
+	CurRecNum = tonumber(Stuff[1][1]);
+	
+	MySQLQuery(SiteDatabaseConnection, "DELETE FROM `global_chat` WHERE `num`<'".. CurRecNum - 5 .."'");
+	
+	timer.Create("PE_DownloadGlobalChat", 1, 0, PE_DownloadGlobalChat);
+end
+timer.Simple(1, PE_BeginGlobalChat);
+
+function PE_DownloadGlobalChat ( )
+	local ServerID = ChatName or "Dev";
+	local Chat = MySQLQuery(SiteDatabaseConnection, "SELECT * FROM `global_chat` WHERE `num`>'" .. CurRecNum .. "' AND `server_id`!='" .. ServerID .. "'", mysql.QUERY_FIELDS);
+	
+	for k, v in pairs(Chat) do			
+		umsg.Start('PE_OFFSERVER_CHAT');
+			umsg.String(v['user_name']);
+			umsg.String(v['message']);
+			umsg.String(v['server_id']);
+		umsg.End();
+		
+		if tonumber(v['num']) > CurRecNum then CurRecNum = tonumber(v['num']) end
+	end
+end
 
 local NumQueries = 0;
 local TotalNumQueries = 0;
@@ -72,7 +167,7 @@ function MYSQLQPS ( Player, Command, Args )
 	Player:PrintMessage(HUD_PRINTCONSOLE, "MySQL Queries Per Second: " .. math.Round(TotalNumQueries / CurTime()) .. "\n");
 	Player:PrintMessage(HUD_PRINTCONSOLE, "User Messages Per Second: " .. math.Round(TotalNumUMsg / CurTime()) .. "\n");
 end
-concommand.Add('mysql_band', MYSQLQPS);
+concommand.Add('pe_band', MYSQLQPS);
 
 // SERVER LOGGING STUFF
 

@@ -35,6 +35,7 @@ end
 
 function ASS_ReadConfig()
 	Msg("Loading default config...\n");
+/*
 	if (file.Exists( ASS_ConfigFilename() ) ) then
 	
 		local cfgfile = file.Read( ASS_ConfigFilename() )
@@ -74,6 +75,7 @@ function ASS_ReadConfig()
 		ASS_WriteConfig()
 	
 	end
+*/
 
 end
 
