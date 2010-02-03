@@ -1,0 +1,7 @@
+"UnlitGeneric"
+{
+	"$basetexture" "pe_achievements/gmr_roadkill"
+	"$nolod" 1
+	"$vertexalpha" 1
+	"$vertexcolor" 1
+}

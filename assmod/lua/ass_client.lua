@@ -2,6 +2,8 @@
 
 include("ass_shared.lua")
 include("cl_nwvars.lua");
+include("pe_chat.lua");
+include('pe_vote_cl.lua');
 
 ASS_Initialized = false
 

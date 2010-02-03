@@ -13,7 +13,7 @@ if !SERVER then return false; end
 
 require("gatekeeper")
 
-local ASS_AUTOBANNAMES = {'CZ', '51st', 'chrisaster', "=PB=", [DU]}
+local ASS_AUTOBANNAMES = {'CZ', '51st', 'chrisaster', "=PB=", 'DU'}
 
 local function JoinAuth ( Name, Pass, SteamID, IP )	
 	Msg('Gatekeeper: ' .. Name .. ' joined with IP ' .. IP .. '\n');
