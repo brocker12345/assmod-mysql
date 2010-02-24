@@ -215,13 +215,15 @@ function PLUGIN.DelayRegister ( Player )
 	
 	local CheckUsers, Success, Error = MySQLQuery(SiteDatabaseConnection, "SELECT `RANK` FROM `users` WHERE `ID`='" .. StripForHTTP(Player:SteamID()) .. "'", mysql.QUERY_FIELDS);
 		
-	if Success and #CheckUsers != 0 and CheckUsers[1]['RANK'] and tonumber(CheckUsers[1]['RANK']) < 5 then
+	if Success and #CheckUsers != 0 and CheckUsers[1]['RANK'] and tonumber(CheckUsers[1]['RANK']) < 6 then
 		GAMEMODE.SetTeam(Player, tonumber(CheckUsers[1]['RANK']))
 		Player:SetLevel(tonumber(CheckUsers[1]['RANK']));
+		MySQLQuery(SiteDatabaseConnection, "UPDATE `users` SET `NAME`='" .. StripForHTTP(Player:Name()) .. "' WHERE `ID` = '" .. StripForHTTP(Player:SteamID()) .. "'");
 	elseif Success then
 		GAMEMODE.SetTeam(Player, 5);
+		MySQLQuery(SiteDatabaseConnection, "INSERT INTO `users` (`ID`, `NAME`, `RANK`) VALUES ('" .. StripForHTTP(Player:SteamID()) .. "', '" .. StripForHTTP(Player:Nick()) .. "', '5')");
 	elseif !Success then
-		Player:Kick("Unanble to validate UserID. Contact administration.");
+		Player:Kick("Unable to validate UserID. Contact administration.");
 	end
 end
 
