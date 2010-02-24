@@ -89,21 +89,16 @@ local function GetCustomChat ( UMsg )
 		Suffix = Player:Nick();
 		
 		if !Player:GetNetworkedBool('pe_dis', false) then
-			if Player:Team() == 4 then
-				FormTable.IsVIP = true;
-			end
-			if Player:Team() == 3 then
+			if Player:HasLevel(3) then
 				FormTable.IsTemp = true;
 			end
-			if Player:Team() == 2 then
+			if Player:HasLevel(2) then
 				FormTable.IsAdmin = true;
 			end
-			
-			if Player:Team() == 1 then
+			if Player:HasLevel(1) then
 				FormTable.IsSuperAdmin = true;
 			end
-			
-			if Player:Team() == 0 then
+			if Player:HasLevel(0) then
 				FormTable.IsOwner = true;
 			end
 		end
@@ -234,9 +229,7 @@ local function AddChatPaintInit ( )
 						draw.SimpleTextOutlined(v.FromText .. ": ", "PEChatFont", x, y - Total * 15 + Number * 15, Color(v.FromColor.r, v.FromColor.g, v.FromColor.b, Alpha), 2, 0, 1, Color(Cos * 0, 0, 255, Alpha * Cos));
 					elseif v.IsTemp then
 						draw.SimpleTextOutlined(v.FromText .. ": ", "PEChatFont", x, y - Total * 15 + Number * 15, Color(v.FromColor.r, v.FromColor.g, v.FromColor.b, Alpha), 2, 0, 1, Color(Cos * 255, 51, 255, Alpha * Cos));
-					elseif v.IsVIP then
-						draw.SimpleTextOutlined(v.FromText .. ": ", "PEChatFont", x, y - Total * 15 + Number * 15, Color(v.FromColor.r, v.FromColor.g, v.FromColor.b, Alpha), 2, 0, 1, Color(Cos * 255, 204, 0, Alpha * Cos));
-						else
+					else
 						draw.SimpleText(v.FromText .. ": ", "PEChatFont", x, y - Total * 15 + Number * 15, Color(v.FromColor.r, v.FromColor.g, v.FromColor.b, Alpha), 2);
 					end
 				end
@@ -312,12 +305,20 @@ local function AddChatPaintInit ( )
 						Prefix = "Command: ";
 						Suffix = string.Right(Suffix, string.len(Suffix)-1);
 					end
+				elseif GAMEMODE.Name == 'Build RP' then
+					if string.find(CurrentText, "/global") == 1 then
+						Prefix = "Global: ";
+						Suffix = string.Right(Suffix, string.len(Suffix)-7);
+					else
+						Prefix = "Command: ";
+						Suffix = string.Right(Suffix, string.len(Suffix)-1);
+					end
 				else
 					Prefix = "Command: ";
 					Suffix = string.Right(Suffix, string.len(Suffix)-1);
 				end
 			elseif IsTeamChat then
-				Prefix = "Global: ";
+				Prefix = "Team: ";
 			end
 			
 			surface.SetFont("PEChatFont");

@@ -10,7 +10,7 @@ include("ass_cmd.lua")
 include("ass_res.lua")
 include("sv_nwvars.lua");
 
-PE_COMMANDS = {};
+--PE_COMMANDS = {};
 
 function AdminDisg ( Player )
 	if !Player:IsAdmin() then return false; end
@@ -25,57 +25,43 @@ function AdminDisg ( Player )
 end
 concommand.Add('disguise', AdminDisg);
 
-function AddChatCommand ( Name, Func ) PE_COMMANDS[Name] = Func; end
-function RemoveChatCommand ( Name ) PE_COMMANDS[Name] = nil; end
+--function AddChatCommand ( Name, Func ) PE_COMMANDS[Name] = Func; end
+--function RemoveChatCommand ( Name ) PE_COMMANDS[Name] = nil; end
 
-function PE_ChatCommands ( Player, Text, Bool )
-	local ExplodedString = string.Explode(" ", string.lower(Text));
-	
-	if string.find(Text, "!") == 1 or string.find(Text, "/") == 1 then
+ChatCommands = {}
+
+function AddChatCommand(cmd, callback, prefixconst)
+	table.insert(ChatCommands, { cmd = cmd, callback = callback, prefixconst = prefixconst })
+end
+
+function PE_ChatCommands (ply, text)
+	if string.find(text, "!") == 1 or string.find(text, "/") == 1 then
 		local Command = nil;
 		local CommandN = '';
 		
-		for k, v in pairs(PE_COMMANDS) do
+		for k, v in pairs(ChatCommands) do
 			local K = string.gsub(k, '!!EMPTY!!', '');
-			local Sub = string.sub(Text, 1, string.len(k) + 1);
+			local Sub = string.sub(text, 1, string.len(k) + 1);
 			
-			if Sub == '!' .. K or Sub == '/' .. K then			
-				Command = v;
-				
-				if string.find(Text, '!' .. K .. ' ') or string.find(Text, '/' .. K .. ' ') then
-					CommandN = string.gsub(string.gsub(Text, '!' .. K .. ' ', ''), '/' .. K .. ' ', '');
-				else
-					CommandN = string.gsub(string.gsub(Text, '!' .. K, ''), '/' .. K, '');
-				end
-				break;
+			Command = v;
+			
+			if v.cmd == string.Explode(" ", string.lower(text))[1] then
+				return v.callback(ply, "" .. string.sub(text, string.len(v.cmd) + 2, string.len(text)))
 			end
 		end
 		
 		if Command then
-			PCallError(Command, Player, Text, Bool, CommandN);
+			PCallError(Command, ply, text, Bool, CommandN);
 		else
 			Player:PrintMessage(HUD_PRINTTALK, "No such command.");
 		end
 		
 		return "";
 	else
-		if Bool then			
-			if PE_CHAT_OVERRIDE then
-				return PE_CHAT_OVERRIDE(Player, Text);
-			else
-				umsg.Start('PE_LOCALCHAT');
-					umsg.Entity(Player);
-					umsg.String(Text);
-				umsg.End();
-				
-				Msg(Player:Nick() .. ": " .. Text .. "\n");
-				return "";
-			end
+		if PE_CHAT_OVERRIDE then
+			return PE_CHAT_OVERRIDE(ply, text);
 		else
-			local ServerID = ChatName or "Dev";
-			MySQLQuery(SiteDatabaseConnection, "INSERT INTO `global_chat` (`server_id`, `user_name`, `message`) VALUES ('" .. StripForHTTP(ServerID) .. "', '" .. StripForHTTP(Player:Name()) .. "', '" .. StripForHTTP(Text) .. "')");
-		
-			umsg.Start('PE_GLOBALCHAT');
+			umsg.Start('PE_LOCALCHAT');
 				umsg.Entity(Player);
 				umsg.String(Text);
 			umsg.End();
@@ -86,12 +72,6 @@ function PE_ChatCommands ( Player, Text, Bool )
 	end
 end
 hook.Add("PlayerSay", "PE_ChatCommands", PE_ChatCommands);
-
-//function PE_ServerBroadcast ( Player, Text, LessCommand )
-	//if Player:GetLevel() > 2 then return false; end
-	//MySQLQuery(SiteDatabaseConnection, "INSERT INTO `global_chat` (`server_id`, `user_name`, `message`) VALUES ('SVRBRD', 'SVRBRD', '" .. StripForHTTP(string.gsub(LessCommand) .. "')");
-//end
-//AddChatCommand('broadcast', PE_ServerBroadcast);
 
 function PE_BeginGlobalChat ( )
 	CurRecNum = 0;
@@ -146,6 +126,7 @@ function MySQLQuery ( Database, String, Type )
 	return R, S, E;
 end
 
+/*
 local OldUMsgStart = umsg.Start;
 local NumUMsg = 0;
 local TotalNumUMsg = 0;
@@ -158,6 +139,7 @@ function umsg.Start ( O, T )
 	
 	OldUMsgStart(O, T);
 end
+*/
 
 function MYSQLQPS ( Player, Command, Args )
 	Player:PrintMessage(HUD_PRINTCONSOLE, "-- RECENT --\n");

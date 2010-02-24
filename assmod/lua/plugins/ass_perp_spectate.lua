@@ -8,7 +8,7 @@ PLUGIN.Filename = PLUGIN_FILENAME
 PLUGIN.ClientSide = true
 PLUGIN.ServerSide = true
 PLUGIN.APIVersion = 2
-PLUGIN.Gamemodes = { "perp" } // only load this plugin for sandbox and it's derivatives
+PLUGIN.Gamemodes = { "build rp" } // only load this plugin for sandbox and it's derivatives
 
 if SERVER then
 
@@ -19,12 +19,12 @@ if SERVER then
 
 		if !TargetPlayer then return false; end
 		
-		Player:GetTable().Spectating = TargetPlayer;
+		--Player:GetTable().Spectating = TargetPlayer;
 		
 		Player:Spectate(OBS_MODE_CHASE)
 		Player:SpectateEntity(TargetPlayer) 
 	end
-	concommand.Add('perp_spectate', SetSpectate);
+	concommand.Add('spectate', SetSpectate);
 	
 	local function StopSpectate ( Player, Command, Args )
 		if !Player:IsAdmin() then return false; end
@@ -36,14 +36,14 @@ if SERVER then
 		
 		Player:KillSilent();
 	end
-	concommand.Add('perp_spectate_stop', StopSpectate);
+	concommand.Add('spectate_stop', StopSpectate);
 
 elseif CLIENT then
 
 	function PLUGIN.DoBlacklist(PLAYER)
 		
 		PERP_SpectatingEntity = PLAYER;
-		RunConsoleCommand('perp_spectate', PLAYER:UniqueID())
+		RunConsoleCommand('spectate', PLAYER:UniqueID())
 
 	end
 	
@@ -51,7 +51,7 @@ elseif CLIENT then
 	function PLUGIN.AddGamemodeMenu(DMENU)			
 	
 		DMENU:AddSubMenu( "Spectate",   nil, function(NEWMENU) ASS_PlayerMenu( NEWMENU, {"IncludeLocalPlayer"}, PLUGIN.DoBlacklist ) end ):SetImage( "gui/silkicons/status_offline" )
-		DMENU:AddOption( "Un-Spectate",  function(NEWMENU) RunConsoleCommand('perp_spectate_stop'); PERP_SpectatingEntity = nil; end ):SetImage( "gui/silkicons/status_offline" )
+		DMENU:AddOption( "Un-Spectate",  function(NEWMENU) RunConsoleCommand('spectate_stop'); PERP_SpectatingEntity = nil; end ):SetImage( "gui/silkicons/status_offline" )
 
 	end
 
